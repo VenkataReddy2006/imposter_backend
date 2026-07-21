@@ -18,14 +18,14 @@ module.exports = (io) => {
 
     // Create Room
     socket.on('createRoom', (data) => {
-      const { playerName, numPlayers, numImposters, categories, timeLimit } = data;
+      const { playerName, profileImageUrl, numPlayers, numImposters, categories, timeLimit } = data;
       const roomCode = generateRoomCode();
       const selectedCategories = categories && categories.length > 0 ? categories : ['everyday'];
       
       rooms[roomCode] = {
         code: roomCode,
         host: socket.id,
-        players: [{ id: socket.id, name: playerName, isHost: true }],
+        players: [{ id: socket.id, name: playerName, profileImageUrl, isHost: true }],
         settings: { numPlayers, numImposters, categories: selectedCategories, timeLimit },
         state: 'lobby', // lobby, playing, voting, leaderboard
         imposters: [],
@@ -38,13 +38,14 @@ module.exports = (io) => {
       };
 
       socket.join(roomCode);
-      socket.emit('roomCreated', getSafeRoom(rooms[roomCode]));
+      io.to(roomCode).emit('roomCreated', getSafeRoom(rooms[roomCode]));
+      console.log('Room created:', roomCode);
     });
 
     // Join Room
     socket.on('joinRoom', (data) => {
       console.log('Join room requested:', data);
-      const { playerName, roomCode } = data;
+      const { playerName, profileImageUrl, roomCode } = data;
       const room = rooms[roomCode];
 
       if (!room) {
@@ -58,11 +59,13 @@ module.exports = (io) => {
       }
 
       if (room.players.length >= room.settings.numPlayers) {
-        console.log('Room is full:', roomCode);
-        return socket.emit('error', 'Room is full');
+        console.log('Room full:', roomCode);
+        return socket.emit('error', 'Room full');
       }
 
-      room.players.push({ id: socket.id, name: playerName, isHost: false });
+      if (!room.players.find(p => p.id === socket.id)) {
+        room.players.push({ id: socket.id, name: playerName, profileImageUrl, isHost: false });
+      }
       socket.join(roomCode);
       console.log('Player successfully joined:', roomCode, 'Total players:', room.players.length);
       io.to(roomCode).emit('playerJoined', getSafeRoom(room));
