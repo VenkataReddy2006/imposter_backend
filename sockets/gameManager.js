@@ -191,6 +191,15 @@ module.exports = (io) => {
       }
     });
 
+    // Final Leaderboard (Host only)
+    socket.on('showFinalLeaderboard', (roomCode) => {
+      const room = rooms[roomCode];
+      if (!room || room.host !== socket.id) return;
+      
+      room.state = 'final_leaderboard';
+      io.to(roomCode).emit('finalLeaderboard', getSafeRoom(room));
+    });
+
     // End Room (Host only)
     socket.on('endRoom', (roomCode) => {
       const room = rooms[roomCode];
