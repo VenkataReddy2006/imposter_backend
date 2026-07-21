@@ -4,6 +4,12 @@ const generateRoomCode = () => {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 };
 
+const getSafeRoom = (room) => {
+  const safeRoom = { ...room };
+  delete safeRoom.phaseTimeout;
+  return safeRoom;
+};
+
 const { wordsByCategory, cluesByWord } = require('./wordsData');
 
 module.exports = (io) => {
@@ -32,7 +38,7 @@ module.exports = (io) => {
       };
 
       socket.join(roomCode);
-      socket.emit('roomCreated', rooms[roomCode]);
+      socket.emit('roomCreated', getSafeRoom(rooms[roomCode]));
     });
 
     // Join Room
@@ -59,7 +65,7 @@ module.exports = (io) => {
       room.players.push({ id: socket.id, name: playerName, isHost: false });
       socket.join(roomCode);
       console.log('Player successfully joined:', roomCode, 'Total players:', room.players.length);
-      io.to(roomCode).emit('playerJoined', room);
+      io.to(roomCode).emit('playerJoined', getSafeRoom(room));
     });
 
     // Start Game
@@ -97,7 +103,7 @@ module.exports = (io) => {
               calculateScoresAndEnd(io, room);
             }, 30 * 1000);
             io.to(roomCode).emit('votingStarted', {
-              ...room,
+              ...getSafeRoom(room),
               state: room.state,
               phaseEndTime: votingEndTime
             });
@@ -105,7 +111,7 @@ module.exports = (io) => {
         }
 
         io.to(roomCode).emit('discussionStarted', {
-          ...room,
+          ...getSafeRoom(room),
           state: room.state,
           discussionStarter: room.discussionStarter,
           phaseEndTime
@@ -129,7 +135,7 @@ module.exports = (io) => {
         }, 30 * 1000);
       }
       io.to(roomCode).emit('votingStarted', {
-        ...room,
+        ...getSafeRoom(room),
         state: room.state,
         phaseEndTime
       });
@@ -180,7 +186,7 @@ module.exports = (io) => {
             room.host = room.players[0].id;
           }
           // Re-use playerJoined to update the UI for remaining players
-          io.to(roomCode).emit('playerJoined', room); 
+          io.to(roomCode).emit('playerJoined', getSafeRoom(room)); 
         }
       }
     });
@@ -216,7 +222,7 @@ module.exports = (io) => {
               room.players[0].isHost = true;
               room.host = room.players[0].id;
             }
-            io.to(roomCode).emit('playerJoined', room);
+            io.to(roomCode).emit('playerJoined', getSafeRoom(room));
           }
           break;
         }
