@@ -9,7 +9,29 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
+  email: {
+    type: String,
+    sparse: true,
+    unique: true
+  },
+  uid: {
+    type: String,
+    sparse: true,
+    unique: true
+  },
   totalScore: {
+    type: Number,
+    default: 0,
+  },
+  gamesPlayed: {
+    type: Number,
+    default: 0,
+  },
+  wins: {
+    type: Number,
+    default: 0,
+  },
+  winRate: {
     type: Number,
     default: 0,
   },
