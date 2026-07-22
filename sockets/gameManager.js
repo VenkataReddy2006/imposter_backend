@@ -319,10 +319,10 @@ function calculateScoresAndEnd(io, room) {
     if (!room.imposters.includes(p.id)) {
        const votedTarget = room.votes[p.id];
        if (room.imposters.includes(votedTarget)) {
-          roundScores[p.id] += correctInnocentVotes * 10;
+          roundScores[p.id] += correctInnocentVotes * 100;
        }
     } else {
-       roundScores[p.id] += wrongVotes * 10;
+       roundScores[p.id] += wrongVotes * 100;
     }
     
     // Accumulate into totalScores
